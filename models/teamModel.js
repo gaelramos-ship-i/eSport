@@ -19,6 +19,10 @@ const teamSchema = new mongoose.Schema(
             type: mongoose.Schema.ObjectId,
             required: true
         },
+        participants: {
+            type: Array,
+            default: []
+        },
     },
     {
         timestamps: true,

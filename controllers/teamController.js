@@ -27,4 +27,40 @@ const createTeam = async (req, res) => {
     }
 }
 
-module.exports = { createTeam }
+/* US6 : Rejoindre une équipe
+En tant que joueur, je veux pouvoir rejoindre une équipe existante, afin de jouer en groupe. */
+
+const setParticipants = async (req, res) => {
+    try {
+        const {idTeam} = req.params
+
+        if(!idTeam){
+            return res.status(404).json({ message: "idTeam not found"})
+        }
+        
+        const team = await Team.findById(idTeam)
+        if(!team){
+            return res.status(404).json({ message: "Invalid Team"})
+        }
+
+        if(team.participants.length >= team.capacity){
+            return res.status(401).json({ message: "Player capacity reached"})
+        }
+
+        const idUser = req.user._id
+        const idUserExist = team.participants.includes(idUser)
+        if(idUserExist){
+            return res.status(400).json({ message: 'This participant is already on this team'})
+        }
+
+        team.participants.push(idUser)
+
+        const updateTeam = await team.save()
+        res.status(200).json(updateTeam)
+
+    } catch (err) {
+        res.status(400).json({ message: err.message })
+    }
+}
+
+module.exports = { createTeam, setParticipants}
