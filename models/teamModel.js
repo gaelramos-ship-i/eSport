@@ -19,7 +19,7 @@ const teamSchema = new mongoose.Schema(
             type: mongoose.Schema.ObjectId,
             required: true
         },
-        participants: {
+        registered: {
             type: Array,
             default: []
         },
