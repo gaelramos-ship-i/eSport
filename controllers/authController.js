@@ -130,6 +130,8 @@ const update = async (req, res) => {
 
         const updateUser = await user.save()
         res.json(updateUser)
+
+        // il faut revoir cette user storie
         
     } catch (err) {
         res.status(500).json({ message: 'Server error during update profil', error: err.message})
