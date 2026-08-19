@@ -8,7 +8,7 @@ const port = 3000
 require('dotenv').config()
 require('./config/db')
 
-// const authRoutes = require('./routes/authRoutes')
+const authRoutes = require('./routes/authRoutes')
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -27,8 +27,8 @@ app.use(express.json())
 app.use(cors())
 app.use(limiter)
 
-// const BASE_ROUTE = '/api/v1'
-// app.use(`${BASE_ROUTE}/auth`, authRoutes)
+const BASE_ROUTE = '/api/v1'
+app.use(`${BASE_ROUTE}/auth`, authRoutes)
 
 app.get('/', (req, res) => {
     res.send('Bienvenue sur mon API RESTful !')
