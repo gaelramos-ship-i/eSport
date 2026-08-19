@@ -109,4 +109,31 @@ const login = async (req, res) => {
     }
 }
 
-module.exports = { register, login }
+/* US4 : Modifier mon profil
+En tant qu’utilisateur, je veux pouvoir modifier mes informations personnelles, afin de garder
+mon profil à jour. */
+
+const update = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id)
+        if(user == null){
+            return res.status(404).json({message: "Utilisateur non trouvé"})
+        }
+
+        if(req.body.name != null){
+            user.name = req.body.name
+        }
+
+        if(req.body.email != null){
+            user.email = req.body.email
+        }
+
+        const updateUser = await user.save()
+        res.json(updateUser)
+        
+    } catch (err) {
+        res.status(500).json({ message: 'Server error during update profil', error: err.message})
+    }
+}
+
+module.exports = { register, login, update }
