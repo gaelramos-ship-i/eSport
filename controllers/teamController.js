@@ -32,7 +32,7 @@ En tant que joueur, je veux pouvoir rejoindre une équipe existante, afin de jou
 
 const joinTeam = async (req, res) => {
     try {
-        const {idTeam} = req.params
+        const {idTournament} = req.params
 
         if(!idTeam){
             return res.status(404).json({ message: "idTeam not found"})
