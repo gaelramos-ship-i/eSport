@@ -113,7 +113,7 @@ const login = async (req, res) => {
 En tant qu’utilisateur, je veux pouvoir modifier mes informations personnelles, afin de garder
 mon profil à jour. */
 
-const update = async (req, res) => {
+const updateProfil = async (req, res) => {
     try {
         const user = await User.findById(req.user._id)
         if(user == null){
@@ -136,4 +136,32 @@ const update = async (req, res) => {
     }
 }
 
-module.exports = { register, login, update }
+/* US16 : Gérer les rôles utilisateurs
+En tant qu’administrateur, je veux attribuer ou modifier les rôles (joueur, capitaine,
+organisateur, admin), afin de contrôler les permissions. */
+
+const updateRoles = async (req, res) => {
+    try {
+
+        const { idUser } = req.params
+
+        const user = await User.findById(idUser)
+        if(user == null){
+            return res.status(404).json({message: "Utilisateur non trouvé"})
+        }
+
+        if(req.body.role != null){
+            user.role = req.body.role
+        }
+
+        const updateUser = await user.save()
+        res.json(updateUser)
+        
+    } catch (err) {
+        res.status(500).json({ message: 'Server error during update role', error: err.message})
+    }
+}
+
+
+
+module.exports = { register, login, updateProfil, updateRoles }

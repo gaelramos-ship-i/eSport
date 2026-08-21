@@ -33,17 +33,17 @@ En tant que joueur, je veux pouvoir rejoindre une équipe existante, afin de jou
 const joinTeam = async (req, res) => {
     try {
         const { idTeam } = req.params
-        if(!idTeam){
-            return res.status(404).json({ message: "idTeam not found"})
-        }
-        
-        const team = await Team.findById(idTeam)
-        if(!team){
-            return res.status(404).json({ message: "Invalid Team"})
+        if (!idTeam) {
+            return res.status(404).json({ message: "idTeam not found" })
         }
 
-        if(team.registered.length >= team.capacity){
-            return res.status(401).json({ message: "Player capacity reached"})
+        const team = await Team.findById(idTeam)
+        if (!team) {
+            return res.status(404).json({ message: "Invalid Team" })
+        }
+
+        if (team.registered.length >= team.capacity) {
+            return res.status(401).json({ message: "Player capacity reached" })
         }
 
         const idUser = req.user._id
@@ -56,8 +56,8 @@ const joinTeam = async (req, res) => {
             }
         }
 
-        if(idUserExist){
-            return res.status(400).json({ message: 'This register is already on this team'})
+        if (idUserExist) {
+            return res.status(400).json({ message: 'This register is already on this team' })
         }
 
         team.registered.push(idUser)
@@ -82,7 +82,7 @@ const deleteEquip = async (req, res) => {
     try {
 
         const { idEquip } = req.params
-        
+
         if (!idEquip) {
             return res.status(404).json({ message: "Equipe non trouvé" })
         }
@@ -103,4 +103,28 @@ const deleteEquip = async (req, res) => {
     }
 }
 
-module.exports = { createTeam, joinTeam, deleteEquip}
+/* US17 : Consulter le détail d’une équipe
+En tant que joueur ou organisateur, je veux consulter la composition et les informations
+d’une équipe, afin de mieux connaître mes adversaires ou coéquipiers. */
+
+const detailsEquip = async (req, res) => {
+    try {
+
+        const { idEquip } = req.params
+        if (!idEquip) {
+            return res.status(404).json({ message: "idEquip non trouvée" })
+        }
+
+        const equip = await Team.findById(idEquip)
+        if (!equip) {
+            return res.status(404).json({ message: "Invalid Equip" })
+        }
+
+        return res.status(200).json(equip)
+
+    } catch (err) {
+        return res.status(500).json({ error: err.message })
+    }
+}
+
+module.exports = { createTeam, joinTeam, deleteEquip, deleteEquip, detailsEquip }

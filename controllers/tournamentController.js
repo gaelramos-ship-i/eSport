@@ -188,7 +188,6 @@ d’analyser la fréquentation. */
 const countTournament = async (req, res) => {
     try {
         const { idTournament } = req.params
-
         if (!idTournament) {
             return res.status(400).json({ message: "idTournament is required" })
         }
@@ -207,5 +206,28 @@ const countTournament = async (req, res) => {
     }
 }
 
+/* US18 : Consulter mes inscriptions à des tournois
+En tant que joueur, je veux voir la liste des tournois auxquels mon équipe est inscrite, afin de
+gérer mon calendrier. */
 
-module.exports = { createTournament, updateTournament, deleteTournament, addTeam, getTournaments, getEquips, countTournament }
+const getTournamentByTeam = async (req, res) => {
+    try {
+        const { idTeam } = req.params
+        if (!idTeam) {
+            return res.status(400).json({ message: "idTeam is required" })
+        }
+
+        const team = await Team.findById(idTeam)
+        if (!team) {
+            return res.status(404).json({ message: "Invalid Team" })
+        }
+
+        const tournaments = await Tournament.find({ equips: idTeam })
+        return res.status(200).json(tournaments)
+
+    } catch (err) {
+        return res.status(500).json({ error: err.message })
+    }
+}
+
+module.exports = { createTournament, updateTournament, deleteTournament, addTeam, getTournaments, getEquips, countTournament, getTournamentByTeam }
