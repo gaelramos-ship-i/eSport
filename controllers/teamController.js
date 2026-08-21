@@ -74,4 +74,33 @@ const joinTeam = async (req, res) => {
 En tant que capitaine, je veux pouvoir ajouter ou retirer des joueurs de mon équipe, afin
 d’organiser efficacement mes membres. */
 
-module.exports = { createTeam, joinTeam}
+/* US14 : Supprimer une équipe (admin uniquement)
+En tant qu’administrateur, je veux pouvoir supprimer une équipe, afin de gérer les cas de
+non-respect des règles ou abus. */
+
+const deleteEquip = async (req, res) => {
+    try {
+
+        const { idEquip } = req.params
+        
+        if (!idEquip) {
+            return res.status(404).json({ message: "Equipe non trouvé" })
+        }
+
+        const team = await Team.findById(idEquip)
+
+        if (!team) {
+            return res.status(404).json({
+                message: "Equipe non trouvée"
+            })
+        }
+
+        await team.deleteOne()
+        res.status(200).json({ message: "L'équipe a été supprimée" })
+
+    } catch (err) {
+        return res.status(500).json({ error: err.message })
+    }
+}
+
+module.exports = { createTeam, joinTeam, deleteEquip}
