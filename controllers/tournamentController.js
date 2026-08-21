@@ -77,16 +77,16 @@ En tant qu’organisateur ou admin, je veux pouvoir supprimer un tournoi, afin d
 
 const deleteTournament = async (req, res) => {
     try {
+        
+        const tournament = await Tournament.findById(req.params.id)
+        if (tournament == null) {
+            return res.status(404).json({ message: "Tournoi non trouvé" })
+        }
 
         if (tournament.organizer.toString() !== req.user._id.toString()) {
             return res.status(403).json({
                 message: "You are not the organizer or admin of this tournament"
             })
-        }
-
-        const tournament = await Tournament.findById(req.params.id)
-        if (tournament == null) {
-            return res.status(404).json({ message: "Tournoi non trouvé" })
         }
         await tournament.deleteOne()
         res.json({ message: "Le tournoi à été supprimé" })
