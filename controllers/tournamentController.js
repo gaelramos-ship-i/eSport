@@ -9,13 +9,14 @@ const createTournament = async (req, res) => {
     try {
         const { name, game, date, rules } = req.body
 
-        if (!name || !game || !rules) {
-            return res.status(400).json({ message: 'You must provide name, game, date, rules' })
+        if (!name || !game || date || !rules) {
+            return res.status(400).json({ message: 'You must provide name, game, rules' })
         }
 
         const tournament = new Tournament({
             name,
             game,
+            date,
             rules,
             date: date || undefined,
             organizer: req.user._id,
@@ -38,6 +39,12 @@ const updateTournament = async (req, res) => {
         const tournament = await Tournament.findById(req.params.id)
         if (tournament == null) {
             return res.status(404).json({ message: "Tournoi non trouvé" })
+        }
+
+        if (tournament.organizer.toString() !== req.user._id.toString()) {
+            return res.status(403).json({
+                message: "You are not the organizer of this tournament"
+            })
         }
 
         if (req.body.name != null) {
@@ -71,6 +78,12 @@ En tant qu’organisateur ou admin, je veux pouvoir supprimer un tournoi, afin d
 const deleteTournament = async (req, res) => {
     try {
 
+        if (tournament.organizer.toString() || tournament.admin.toString() !== req.user._id.toString()) {
+            return res.status(403).json({
+                message: "You are not the organizer or admin of this tournament"
+            })
+        }
+
         const tournament = await Tournament.findById(req.params.id)
         if (tournament == null) {
             return res.status(404).json({ message: "Tournoi non trouvé" })
@@ -91,35 +104,117 @@ const addTeam = async (req, res) => {
     try {
 
         const { idTournament } = req.params
-
-        if (!idTournament) {
-            return res.status(404).json({ message: "idTournament not found" })
-        }
+        const { idTeam } = req.body
 
         const tournament = await Tournament.findById(idTournament)
         if (!tournament) {
             return res.status(404).json({ message: "Invalid Tournament" })
         }
 
-        const team = await Team.findOne({creator: req.user._id})
+        const team = await Team.findById(idTeam)
         if (!team) {
             return res.status(404).json({ message: "Invalid Team" })
         }
 
-        const idTeam = team._id
-        const idTeamExist = tournament.equips.includes(idTeam)
-        if(idTeamExist){
-            return res.status(400).json({ message: 'This equip is already on this tournament'})
+        let idTeamExist = false
+
+        for (const tournamentTeam of tournament.equips) {
+            if (tournamentTeam.toString() === team._id.toString()) {
+                idTeamExist = true
+                break
+            }
         }
 
-        tournament.equips.push(idTeam)
+        if (idTeamExist) {
+            return res.status(400).json({
+                message: "This team is already on this tournament"
+            })
+        }
 
-        const updateTournament = await tournament.save()
-        res.status(200).json(updateTournament)
-    
+        tournament.equips.push(team._id)
+
+        const updatedTournament = await tournament.save()
+        res.status(200).json(updatedTournament)
+
     } catch (err) {
         res.status(500).json({ error: err.message })
     }
 }
 
-module.exports = { createTournament, updateTournament, deleteTournament, addTeam }
+const getTournaments = async (req, res) => {
+    try {
+
+        const tournament = await Tournament.find({ status : true })
+        res.status(200).json(tournament)
+
+    } catch (err) {
+        res.status(500).json({ error: err.message })
+    }
+}
+
+/* US13 : Voir les équipes inscrites à un tournoi
+En tant qu’organisateur, je veux voir la liste des équipes inscrites à mes tournois, afin de
+suivre la participation. */
+
+const getEquips = async (req, res) => {
+    try {
+        const { idTournament } = req.params
+        if (!idTournament) {
+            return res.status(400).json({
+                message: "idTournament is required"
+            })
+        }
+
+        const tournament = await Tournament.findById(idTournament)
+            .populate('equips')
+
+        if (!tournament) {
+            return res.status(404).json({
+                message: "Invalid Tournament"
+            })
+        }
+
+        if (tournament.organizer.toString() !== req.user._id.toString()) {
+            return res.status(403).json({
+                message: "You are not the organizer of this tournament"
+            })
+        }
+
+        return res.status(200).json({
+            equips: tournament.equips
+        })
+
+    } catch (err) {
+        return res.status(500).json({ error: err.message })
+    }
+}
+
+const deleteEquip = async (req, res) => {
+    try {
+
+        const { idEquip } = req.params
+        
+        if (!idEquip) {
+            return res.status(404).json({ message: "Equipe non trouvé" })
+        }
+
+        const team = await Team.findById(idEquip)
+
+        if (!team) {
+            return res.status(404).json({
+                message: "Equipe non trouvée"
+            })
+        }
+
+        await team.deleteOne()
+
+        res.status(200).json({
+            message: "L'équipe a été supprimée"
+        })
+
+    } catch (err) {
+        return res.status(500).json({ error: err.message })
+    }
+}
+
+module.exports = { createTournament, updateTournament, deleteTournament, addTeam, getTournaments, getEquips, deleteEquip }

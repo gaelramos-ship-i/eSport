@@ -32,8 +32,7 @@ En tant que joueur, je veux pouvoir rejoindre une équipe existante, afin de jou
 
 const joinTeam = async (req, res) => {
     try {
-        const {idTournament} = req.params
-
+        const { idTeam } = req.params
         if(!idTeam){
             return res.status(404).json({ message: "idTeam not found"})
         }
@@ -48,7 +47,15 @@ const joinTeam = async (req, res) => {
         }
 
         const idUser = req.user._id
-        const idUserExist = team.registered.includes(idUser)
+        let idUserExist = false
+
+        for (const userId of team.registered) {
+            if (userId.toString() === idUser.toString()) {
+                idUserExist = true
+                break
+            }
+        }
+
         if(idUserExist){
             return res.status(400).json({ message: 'This register is already on this team'})
         }

@@ -26,8 +26,15 @@ const tournamentSchema = new mongoose.Schema(
             required: true
         },
         equips: {
-            type: Array,
+            type: [{
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Team'
+            }],
             default: []
+        },
+        status: {
+            type: Boolean,
+            default: true
         }
     },
     {
