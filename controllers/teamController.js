@@ -1,4 +1,5 @@
 const Team = require('../models/teamModel')
+const User = require('../models/userModel')
 
 /* US5 : Créer une équipe
 En tant que joueur, je veux pouvoir créer ma propre équipe, afin de participer à des
@@ -74,6 +75,88 @@ const joinTeam = async (req, res) => {
 En tant que capitaine, je veux pouvoir ajouter ou retirer des joueurs de mon équipe, afin
 d’organiser efficacement mes membres. */
 
+const manageEquipAdd = async (req, res) => {
+    try {
+        const { idPlayer } = req.params
+        if (!idPlayer) {
+            return res.status(404).json({ message: "idPlayer not found" })
+        }
+
+        const user = await User.findById(idPlayer)
+        if(!user){
+            return res.status(404).json({ message: "user not found" })
+        }
+
+        const roleUser = req.user.role
+        if(roleUser !== "captain"){
+            return res.status(401).json({ message: "You are not the captain" })
+        }
+
+        const team = await Team.findOne({ creator: req.user._id })
+        if (!team) {
+            return res.status(404).json({ message: "Invalid Team" })
+        }
+
+        if (team.registered.length >= team.capacity) {
+            return res.status(401).json({ message: "Player capacity reached" })
+        }
+
+        let idUserExist = false
+
+        for (const userId of team.registered) {
+            if (userId.toString() === idPlayer.toString()) {
+                idUserExist = true
+                break
+            }
+        }
+
+        if (idUserExist) {
+            return res.status(400).json({ message: 'This register is already on this team' })
+        }
+
+        team.registered.push(user._id)
+
+        const updateTeam = await team.save()
+        res.status(200).json(updateTeam)
+
+    } catch (err) {
+        res.status(400).json({ message: err.message })
+    }
+}
+
+const manageEquipDel = async (req, res) => {
+    try {
+
+        const { idPlayer } = req.params
+        if (!idPlayer) {
+            return res.status(404).json({ message: "idPlayer not found" })
+        }
+
+        const user = await User.findById(idPlayer)
+        if(!user){
+            return res.status(404).json({ message: "user not found" })
+        }
+
+        const roleUser = req.user.role
+        if(roleUser !== "captain"){
+            return res.status(401).json({ message: "You are not the captain" })
+        }
+
+        const team = await Team.findOne({ creator: req.user._id })
+        if (!team) {
+            return res.status(404).json({ message: "Invalid Team" })
+        }
+
+        team.registered.pull(user._id)
+
+        const updateTeam = await team.save()
+        res.status(200).json(updateTeam)
+
+    } catch (err) {
+        res.status(400).json({ message: err.message })
+    }
+}
+
 /* US14 : Supprimer une équipe (admin uniquement)
 En tant qu’administrateur, je veux pouvoir supprimer une équipe, afin de gérer les cas de
 non-respect des règles ou abus. */
@@ -127,4 +210,4 @@ const detailsEquip = async (req, res) => {
     }
 }
 
-module.exports = { createTeam, joinTeam, deleteEquip, deleteEquip, detailsEquip }
+module.exports = { createTeam, joinTeam, deleteEquip, deleteEquip, detailsEquip, manageEquipAdd, manageEquipDel }

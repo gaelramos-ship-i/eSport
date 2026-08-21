@@ -78,7 +78,7 @@ En tant qu’organisateur ou admin, je veux pouvoir supprimer un tournoi, afin d
 const deleteTournament = async (req, res) => {
     try {
 
-        if (tournament.organizer.toString() || tournament.admin.toString() !== req.user._id.toString()) {
+        if (tournament.organizer.toString() !== req.user._id.toString()) {
             return res.status(403).json({
                 message: "You are not the organizer or admin of this tournament"
             })
@@ -138,6 +138,10 @@ const addTeam = async (req, res) => {
         res.status(500).json({ error: err.message })
     }
 }
+
+/* US12 : Lister les tournois ouverts 
+En tant que joueur, je veux voir tous les tournois ouverts à l’inscription, afin de choisir où
+participer. */
 
 const getTournaments = async (req, res) => {
     try {
